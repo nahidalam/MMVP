@@ -94,6 +94,17 @@ To evaluate on MMVP-VLM, run
 ```
 python scripts/evaluate_vlm.py --directory PATH_TO_MMVPVLM_BENCHMARK_FOLDER
 ```
+
+
+NOTE: you need to have `clip` installed from source
+
+```
+git clone https://github.com/openai/CLIP.git
+cd CLIP
+pip install -e .
+
+```
+
 Here is the result of *SOTA* CLIP models on MMVP-VLM Benchmark. It shows that scaling up parameters and image resolution in CLIP models obtain very little improvement on discerning these visual patterns.
 
 ![MMVPVLM](imgs/vlm_results.png)
