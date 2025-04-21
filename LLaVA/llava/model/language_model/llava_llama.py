@@ -25,7 +25,7 @@ from transformers import AutoConfig, AutoModelForCausalLM, \
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from ..llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
-
+from transformers.models.auto.configuration_auto import CONFIG_MAPPING_NAMES
 
 class LlavaConfig(LlamaConfig):
     model_type = "llava"
@@ -137,5 +137,6 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         )
         return model_inputs
 
-AutoConfig.register("llava", LlavaConfig)
+if "llava" not in CONFIG_MAPPING_NAMES:
+    AutoConfig.register("llava", LlavaConfig)
 AutoModelForCausalLM.register(LlavaConfig, LlavaLlamaForCausalLM)
