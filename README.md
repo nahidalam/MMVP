@@ -105,6 +105,12 @@ pip install -e .
 
 ```
 
+To evaluate any vlm from HF
+
+```
+python scripts/evaluate_any_vlm.py --directory /home/shapla/MMVP_VLM --model_name google/siglip2-so400m-patch16-512
+```
+
 Here is the result of *SOTA* CLIP models on MMVP-VLM Benchmark. It shows that scaling up parameters and image resolution in CLIP models obtain very little improvement on discerning these visual patterns.
 
 ![MMVPVLM](imgs/vlm_results.png)
