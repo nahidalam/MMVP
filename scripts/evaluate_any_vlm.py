@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from transformers import AutoProcessor, AutoModel, CLIPModel, CLIPProcessor
+is_openai_clip = None
 
 def load_model(model_name, device):
     """
@@ -16,16 +17,17 @@ def load_model(model_name, device):
     """
     if model_name.startswith("ViT") or model_name.lower().startswith("openai"):
         import clip
+        is_openai_clip = True
         model, preprocess = clip.load(model_name, device=device)
-        return model, preprocess, clip.tokenize
+        return model, preprocess
     else:
-        model = AutoModel.from_pretrained(model_name).to(device)
+        model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
         processor = AutoProcessor.from_pretrained(model_name)
-        return model, processor, None
+        return model, processor
 
 def benchmark_model(model_name, benchmark_dir, device="cpu"):
-    model, processor_or_preprocess, tokenizer = load_model(model_name, device)
-    is_openai_clip = tokenizer is not None
+    model, preprocess = load_model(model_name, device)
+    #is_openai_clip = tokenizer is not None
 
     image_dir = os.path.join(benchmark_dir, 'MLLM_VLM Images')
     csv_file = os.path.join(benchmark_dir, 'Questions.csv')
@@ -69,8 +71,8 @@ def benchmark_model(model_name, benchmark_dir, device="cpu"):
                 text1_token = tokenizer([text1]).to(device)
                 text2_token = tokenizer([text2]).to(device)
 
-                img1_tensor = processor_or_preprocess(img1).unsqueeze(0).to(device)
-                img2_tensor = processor_or_preprocess(img2).unsqueeze(0).to(device)
+                img1_tensor = preprocess(img1).unsqueeze(0).to(device)
+                img2_tensor = preprocess(img2).unsqueeze(0).to(device)
                 imgs = torch.cat((img1_tensor, img2_tensor), dim=0)
 
                 with torch.no_grad():
@@ -80,14 +82,14 @@ def benchmark_model(model_name, benchmark_dir, device="cpu"):
                     probs1 = logits_per_text1.softmax(dim=-1).cpu().numpy()
                     probs2 = logits_per_text2.softmax(dim=-1).cpu().numpy()
             else:
-                inputs1 = processor_or_preprocess(
+                inputs1 = preprocess(
                     text=[text1] * 2,
                     images=[img1, img2],
                     return_tensors="pt",
                     padding=True
                 ).to(device)
 
-                inputs2 = processor_or_preprocess(
+                inputs2 = preprocess(
                     text=[text2] * 2,
                     images=[img1, img2],
                     return_tensors="pt",
