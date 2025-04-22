@@ -82,19 +82,36 @@ def benchmark_model(model_name, benchmark_dir, device="cpu"):
                     probs1 = logits_per_text1.softmax(dim=-1).cpu().numpy()
                     probs2 = logits_per_text2.softmax(dim=-1).cpu().numpy()
             else:
-                inputs1 = preprocess(
-                    text=[text1] * 2,
-                    images=[img1, img2],
-                    return_tensors="pt",
-                    padding=True
-                ).to(device)
+                if "siglip2" in model_name.lower():
+                    inputs1 = preprocess(
+                        text=[text1] * 2,
+                        images=[img1, img2],
+                        padding="max_length",
+                        max_length=64,
+                        return_tensors="pt"
+                    ).to(device)
 
-                inputs2 = preprocess(
-                    text=[text2] * 2,
-                    images=[img1, img2],
-                    return_tensors="pt",
-                    padding=True
-                ).to(device)
+                    inputs2 = preprocess(
+                        text=[text2] * 2,
+                        images=[img1, img2],
+                        padding="max_length",
+                        max_length=64,
+                        return_tensors="pt"
+                    ).to(device)
+                else:
+                    inputs1 = preprocess(
+                        text=[text1] * 2,
+                        images=[img1, img2],
+                        return_tensors="pt",
+                        padding=True
+                    ).to(device)
+
+                    inputs2 = preprocess(
+                        text=[text2] * 2,
+                        images=[img1, img2],
+                        return_tensors="pt",
+                        padding=True
+                    ).to(device)
 
                 with torch.no_grad():
                     outputs1 = model(**inputs1)
