@@ -105,6 +105,8 @@ pip install -e .
 
 ```
 
+Note: to evaluate `siglip2` you need transformers version `4.51.3` which needs `timm` version `1.0.15`
+
 To evaluate any vlm from HF
 
 ```
