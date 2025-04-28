@@ -7,17 +7,14 @@ from transformers import AutoModel, AutoProcessor
 import numpy as np
 
 def benchmark_model_siglip2(model_name, benchmark_dir, device="cuda"):
-    if 'siglip2' in model_name:
-        model = AutoModel.from_pretrained(
+    model = AutoModel.from_pretrained(
         model_name,
         torch_dtype=torch.float16,
         device_map="auto",
-        trust_remote_code=True,
         attn_implementation="sdpa"
-        )
-    else:
-        model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
-    processor = AutoProcessor.from_pretrained(model_name, trust_remote_code=True)
+    )
+    processor = AutoProcessor.from_pretrained(model_name)
+
     image_dir = os.path.join(benchmark_dir, 'MLLM_VLM Images')
     csv_file = os.path.join(benchmark_dir, 'Questions.csv')
 
@@ -58,44 +55,25 @@ def benchmark_model_siglip2(model_name, benchmark_dir, device="cuda"):
             # Process images and texts
             imgs = [img1, img2]
 
-            if 'siglip2' in model_name:
-                inputs1 = processor(
-                    text=[text1],
-                    images=imgs,
-                    padding="max_length",
-                    max_length=64,
-                    return_tensors="pt"
-                ).to(device)
+            inputs1 = processor(
+                text=[text1],
+                images=imgs,
+                padding="max_length",
+                max_length=64,
+                return_tensors="pt"
+            ).to(device)
 
-                inputs2 = processor(
-                    text=[text2],
-                    images=imgs,
-                    padding="max_length",
-                    max_length=64,
-                    return_tensors="pt"
-                ).to(device)
-            else:
-                inputs1 = processor(
-                    text=[text1],
-                    images=imgs,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                ).to(device)
-
-                inputs2 = processor(
-                    text=[text2],
-                    images=imgs,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                ).to(device)
+            inputs2 = processor(
+                text=[text2],
+                images=imgs,
+                padding="max_length",
+                max_length=64,
+                return_tensors="pt"
+            ).to(device)
 
             with torch.no_grad():
                 outputs1 = model(**inputs1)
                 outputs2 = model(**inputs2)
-            print(outputs1.keys())
-            print(outputs2.keys())
 
             logits_per_image1 = outputs1.logits_per_image  # shape: (2, 1)
             logits_per_image2 = outputs2.logits_per_image  # shape: (2, 1)
